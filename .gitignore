@@ -1,0 +1,19 @@
+# Ignore IDE specific files
+.idea/
+
+# Golang specific
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/vendor/
+
+# Dependency directories (remove the comment below if you want to ignore them)
+# vendor/
+
+# Go workspace file
+go.work
+
