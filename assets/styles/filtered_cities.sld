@@ -11,33 +11,20 @@
       <FeatureTypeStyle>
         <Rule>
           <Name>Tehran Cities</Name>
-          <Title>Tehran Province Cities - Green</Title>
+          <Title>Tehran Province Cities - Yellow</Title>
           <ogc:Filter>
             <ogc:PropertyIsEqualTo>
-              <ogc:PropertyName>province</ogc:PropertyName>
-              <ogc:Literal>Tehran</ogc:Literal>
+              <ogc:PropertyName>ostan_name</ogc:PropertyName>
+              <ogc:Literal>تهران</ogc:Literal>
             </ogc:PropertyIsEqualTo>
           </ogc:Filter>
-          <PolygonSymbolizer>
-            <Fill>
-              <CssParameter name="fill">#00FF00</CssParameter>
-            </Fill>
-            <Stroke>
-              <CssParameter name="stroke">#000000</CssParameter>
-              <CssParameter name="stroke-width">1</CssParameter>
-            </Stroke>
-          </PolygonSymbolizer>
-        </Rule>
-        <Rule>
-          <Name>Other Cities</Name>
-          <Title>Other Cities - Yellow</Title>
           <PolygonSymbolizer>
             <Fill>
               <CssParameter name="fill">#FFFF00</CssParameter>
             </Fill>
             <Stroke>
-              <CssParameter name="stroke">#000000</CssParameter>
-              <CssParameter name="stroke-width">1</CssParameter>
+              <CssParameter name="stroke">#FF0000</CssParameter>
+              <CssParameter name="stroke-width">2</CssParameter>
             </Stroke>
           </PolygonSymbolizer>
         </Rule>

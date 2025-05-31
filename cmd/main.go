@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -15,7 +16,6 @@ import (
 )
 
 const (
-
 	// GDAL PostGIS connection string
 	pgConnStr   = "PG:host=127.0.0.1 port=5432 dbname=GIS user=TestDev_User password=123456789AAAA sslmode=disable"
 	layerIndex  = 0
@@ -24,15 +24,32 @@ const (
 )
 
 var (
-	sldParser *sld.Parser
+	// We'll use an interface to allow different SLD parser implementations
+	sldProcessor SLDProcessor
+	useGDALCLI   bool
 )
 
+// SLDProcessor interface defines the common functionality for SLD processing
+type SLDProcessor interface {
+	ProcessStyles(sldParam, layerName string) ([]string, error)
+}
+
 func main() {
+	// Parse command-line flags
+	flag.BoolVar(&useGDALCLI, "use-gdal-cli", false, "Use GDAL CLI tools for SLD processing")
+	flag.Parse()
+
 	// Register all GDAL drivers
 	godal.RegisterAll()
 
-	// Initialize SLD parser
-	sldParser = sld.NewParser(stylesDir)
+	// Initialize the appropriate SLD processor based on flags
+	if useGDALCLI {
+		log.Println("Using GDAL CLI adapter for SLD processing")
+		sldProcessor = sld.NewGDALAdapter(stylesDir)
+	} else {
+		log.Println("Using XML-based SLD parser")
+		sldProcessor = sld.NewGDALParser(stylesDir, false)
+	}
 
 	e := echo.New()
 	e.HideBanner = true
@@ -81,14 +98,21 @@ func getMapHandler(c echo.Context) error {
 	}
 	// We'll use the first layer for rasterization
 
-	// 4. Process SLD styling
-	rasterizeOptions, err := sldParser.ProcessStyles(c.QueryParam("STYLES"), layerName)
+	// 4. Process SLD styling with selected processor
+	// Check both SLD and STYLES parameters for compatibility
+	sldParam := c.QueryParam("SLD")
+	if sldParam == "" {
+		sldParam = c.QueryParam("STYLES") // Fallback to STYLES for backward compatibility
+	}
+	rasterizeOptions, err := sldProcessor.ProcessStyles(sldParam, layerName)
 	if err != nil {
 		return c.String(http.StatusBadRequest, err.Error())
 	}
 
-	// 5. Create an in-memory raster
-	outDS, err := godal.Create("MEM", "", 4, godal.Byte, width, height)
+	log.Printf("[DEBUG] Rasterize options for %s: %v", sldParam, rasterizeOptions)
+
+	// 5. Create an in-memory raster (3 bands: RGB)
+	outDS, err := godal.Create("MEM", "", 3, godal.Byte, width, height)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "create MEM error: "+err.Error())
 	}
